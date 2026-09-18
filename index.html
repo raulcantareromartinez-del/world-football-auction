@@ -5,255 +5,1008 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>World Football Auction</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
-.wrap{max-width:1000px;margin:auto;padding:20px}.card{background:#111b2e;border:1px solid #26344e;border-radius:18px;padding:20px;margin-bottom:16px}
-h1,h2{margin-top:0}.muted{color:#9eabc0}.hidden{display:none}
-button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#18d47b;color:#06110b}
-button.secondary{background:#26344e;color:#fff}button.danger{background:#e74c3c;color:#fff}
-input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #33435f;background:#0b1220;color:#fff;margin:6px 0 12px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.player{text-align:center;font-size:24px;padding:15px;border-radius:14px;background:#18243a}.player b{display:block;font-size:18px;margin-top:8px}
-.pos{font-size:13px;color:#a9b5c8}.money{font-size:26px;font-weight:800}.bid{font-size:42px;font-weight:900;text-align:center;margin:10px}
-.actions{display:flex;gap:10px;flex-wrap:wrap}.actions button{flex:1}
-table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #293750;text-align:left}
-.status{padding:10px;border-radius:10px;background:#172238;margin-bottom:12px}
-.squad{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.slot{min-height:110px;border:1px dashed #53627a;border-radius:12px;padding:10px;text-align:center}
-.small{font-size:12px}.winner{font-size:30px;text-align:center;padding:20px;background:#173b2a;border-radius:16px}
-@media(max-width:700px){.grid,.squad,.grid2{grid-template-columns:1fr 1fr}.actions{display:grid;grid-template-columns:1fr 1fr}}
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#0b1220;
+color:white
+}
+
+.wrap{
+max-width:1000px;
+margin:auto;
+padding:20px
+}
+
+.card{
+background:#111b2e;
+border:1px solid #26344e;
+border-radius:18px;
+padding:20px;
+margin-bottom:16px
+}
+
+h1,h2{margin-top:0}
+.muted{color:#9eabc0}
+.hidden{display:none}
+
+button{
+border:0;
+border-radius:10px;
+padding:12px 16px;
+font-weight:bold;
+cursor:pointer;
+background:#18d47b;
+color:#06110b
+}
+
+button.secondary{
+background:#26344e;
+color:white
+}
+
+input{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:1px solid #33435f;
+background:#0b1220;
+color:white;
+margin:6px 0 12px
+}
+
+.grid2{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px
+}
+
+.player{
+text-align:center;
+font-size:24px;
+padding:15px;
+border-radius:14px;
+background:#18243a
+}
+
+.player b{
+display:block;
+font-size:18px;
+margin-top:8px
+}
+
+.pos{
+font-size:13px;
+color:#a9b5c8
+}
+
+.money{
+font-size:26px;
+font-weight:800
+}
+
+.bid{
+font-size:42px;
+font-weight:900;
+text-align:center;
+margin:10px
+}
+
+.actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap
+}
+
+.actions button{
+flex:1
+}
+
+.status{
+padding:10px;
+border-radius:10px;
+background:#172238;
+margin-bottom:12px
+}
+
+.squad{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px
+}
+
+.slot{
+min-height:110px;
+border:1px dashed #53627a;
+border-radius:12px;
+padding:10px;
+text-align:center
+}
+
+.small{
+font-size:12px
+}
+
+.winner{
+font-size:30px;
+text-align:center;
+padding:20px;
+background:#173b2a;
+border-radius:16px
+}
+
+@media(max-width:700px){
+.grid2,.squad{
+grid-template-columns:1fr 1fr
+}
+
+.actions{
+display:grid;
+grid-template-columns:1fr 1fr
+}
+}
 </style>
 </head>
+
 <body>
+
 <div class="wrap">
-  <div class="card">
-    <h1>🏆 World Football Auction</h1>
-    <p class="muted">Subastas con <b>20 € virtuales</b> por jugador. No hay dinero real.</p>
-  </div>
 
-  <div id="home" class="card">
-    <h2>Crear partida</h2>
-    <label>Tu nombre</label><input id="hostName" placeholder="Jugador 1">
-    <button onclick="createRoom()">Crear sala</button>
-    <hr style="border-color:#293750;margin:20px 0">
-    <h2>Unirse a una partida</h2>
-    <label>Tu nombre</label><input id="guestName" placeholder="Jugador 2">
-    <label>Enlace o código de sala</label><input id="roomInput" placeholder="Pega aquí el enlace">
-    <button class="secondary" onclick="joinRoom()">Unirse</button>
-  </div>
-
-  <div id="game" class="hidden">
-    <div class="grid2">
-      <div class="card">
-        <div class="muted">Tu saldo</div><div id="myMoney" class="money">20 €</div>
-      </div>
-      <div class="card">
-        <div class="muted">Rival</div><div id="oppMoney" class="money">20 €</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div id="status" class="status">Conectando...</div>
-      <div id="turnBox"></div>
-      <div class="player" id="currentPlayer">Esperando jugador...</div>
-      <div class="bid" id="currentBid">0 €</div>
-      <div class="muted" style="text-align:center">Última puja</div>
-      <br>
-      <div class="actions">
-        <button onclick="bid(1)">Pujar +1 €</button>
-        <button onclick="bid(2)">Pujar +2 €</button>
-        <button class="secondary" onclick="passBid()">Pasar</button>
-        <button id="nextBtn" class="secondary hidden" onclick="hostNext()">Siguiente jugador</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>📋 Plantillas</h2>
-      <div class="squad">
-        <div class="slot"><b>🧤 PORTERO</b><div id="myGK">Vacío</div></div>
-        <div class="slot"><b>🛡️ CENTRAL</b><div id="myCB">Vacío</div></div>
-        <div class="slot"><b>🎯 MEDIO</b><div id="myMID">Vacío</div></div>
-        <div class="slot"><b>⚽ DELANTERO</b><div id="myFWD">Vacío</div></div>
-      </div>
-      <br>
-      <div class="squad">
-        <div class="slot"><b>🧤 RIVAL</b><div id="oppGK">Vacío</div></div>
-        <div class="slot"><b>🛡️ RIVAL</b><div id="oppCB">Vacío</div></div>
-        <div class="slot"><b>🎯 RIVAL</b><div id="oppMID">Vacío</div></div>
-        <div class="slot"><b>⚽ RIVAL</b><div id="oppFWD">Vacío</div></div>
-      </div>
-    </div>
-
-    <div id="winner" class="card hidden"></div>
-  </div>
+<div class="card">
+<h1>🏆 World Football Auction</h1>
+<p class="muted">
+Subastas con <b>20 € virtuales</b>. No hay dinero real.
+</p>
 </div>
 
+<div id="home" class="card">
+
+<h2>🎮 Crear partida</h2>
+
+<label>Tu nombre</label>
+<input id="hostName" placeholder="Jugador 1">
+
+<button onclick="createRoom()">Crear sala</button>
+
+<hr style="border-color:#293750;margin:20px 0">
+
+<h2>🔗 Unirse a una partida</h2>
+
+<label>Tu nombre</label>
+<input id="guestName" placeholder="Jugador 2">
+
+<label>Enlace o código de sala</label>
+<input id="roomInput" placeholder="Pega aquí el enlace">
+
+<button class="secondary" onclick="joinRoom()">
+Unirse
+</button>
+
+</div>
+
+
+<div id="game" class="hidden">
+
+<div class="grid2">
+
+<div class="card">
+<div class="muted">Tu saldo</div>
+<div id="myMoney" class="money">20 €</div>
+</div>
+
+<div class="card">
+<div class="muted">Rival</div>
+<div id="oppMoney" class="money">20 €</div>
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div id="status" class="status">
+Conectando...
+</div>
+
+<div id="turnBox"></div>
+
+<div class="player" id="currentPlayer">
+Esperando jugador...
+</div>
+
+<div class="bid" id="currentBid">
+0 €
+</div>
+
+<div class="muted" style="text-align:center">
+Puja actual
+</div>
+
+<br>
+
+<div class="actions">
+
+<button onclick="bid(1)">
+💰 Pujar +1 €
+</button>
+
+<button onclick="bid(2)">
+💰 Pujar +2 €
+</button>
+
+<button class="secondary" onclick="passBid()">
+✋ Pasar
+</button>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>📋 Plantillas</h2>
+
+<div class="squad">
+
+<div class="slot">
+<b>🧤 PORTERO</b>
+<div id="myGK">Vacío</div>
+</div>
+
+<div class="slot">
+<b>🛡️ CENTRAL</b>
+<div id="myCB">Vacío</div>
+</div>
+
+<div class="slot">
+<b>🎯 MEDIO</b>
+<div id="myMID">Vacío</div>
+</div>
+
+<div class="slot">
+<b>⚽ DELANTERO</b>
+<div id="myFWD">Vacío</div>
+</div>
+
+</div>
+
+<br>
+
+<div class="squad">
+
+<div class="slot">
+<b>🧤 RIVAL</b>
+<div id="oppGK">Vacío</div>
+</div>
+
+<div class="slot">
+<b>🛡️ RIVAL</b>
+<div id="oppCB">Vacío</div>
+</div>
+
+<div class="slot">
+<b>🎯 RIVAL</b>
+<div id="oppMID">Vacío</div>
+</div>
+
+<div class="slot">
+<b>⚽ RIVAL</b>
+<div id="oppFWD">Vacío</div>
+</div>
+
+</div>
+
+</div>
+
+
+<div id="winner" class="card hidden"></div>
+
+</div>
+
+</div>
+
+
 <script>
-/*
-  PROTOTIPO MULTIJUGADOR:
-  - PeerJS conecta los dos navegadores directamente.
-  - El anfitrión mantiene la lista/orden de jugadores y controla el estado.
-  - El enlace de invitación contiene el ID de la sala.
-  - Los 20 € son virtuales.
-  IMPORTANTE: para ocultar de verdad la lista de jugadores frente a alguien
-  que inspeccione el código, hace falta un servidor/backend. Este prototipo
-  evita que la interfaz revele los siguientes jugadores al otro participante.
-*/
 
 const players=[
- {name:"Kylian Mbappé",pos:"FWD",emoji:"⚽",rating:96},
- {name:"Erling Haaland",pos:"FWD",emoji:"⚽",rating:96},
- {name:"Vinícius Jr.",pos:"FWD",emoji:"⚽",rating:95},
- {name:"Harry Kane",pos:"FWD",emoji:"⚽",rating:94},
- {name:"Mohamed Salah",pos:"FWD",emoji:"⚽",rating:93},
- {name:"Lamine Yamal",pos:"FWD",emoji:"⚽",rating:93},
- {name:"Jude Bellingham",pos:"MID",emoji:"🎯",rating:95},
- {name:"Rodri",pos:"MID",emoji:"🎯",rating:96},
- {name:"Pedri",pos:"MID",emoji:"🎯",rating:91},
- {name:"Kevin De Bruyne",pos:"MID",emoji:"🎯",rating:90},
- {name:"Federico Valverde",pos:"MID",emoji:"🎯",rating:91},
- {name:"Declan Rice",pos:"MID",emoji:"🎯",rating:90},
- {name:"Virgil van Dijk",pos:"CB",emoji:"🛡️",rating:90},
- {name:"William Saliba",pos:"CB",emoji:"🛡️",rating:90},
- {name:"Rúben Dias",pos:"CB",emoji:"🛡️",rating:89},
- {name:"Antonio Rüdiger",pos:"CB",emoji:"🛡️",rating:88},
- {name:"Éder Militão",pos:"CB",emoji:"🛡️",rating:88},
- {name:"Marquinhos",pos:"CB",emoji:"🛡️",rating:87},
- {name:"Thibaut Courtois",pos:"GK",emoji:"🧤",rating:91},
- {name:"Donnarumma",pos:"GK",emoji:"🧤",rating:91},
- {name:"Alisson",pos:"GK",emoji:"🧤",rating:90},
- {name:"Ederson",pos:"GK",emoji:"🧤",rating:89},
- {name:"Emiliano Martínez",pos:"GK",emoji:"🧤",rating:89},
- {name:"Mike Maignan",pos:"GK",emoji:"🧤",rating:88}
+
+{name:"Kylian Mbappé",pos:"FWD",emoji:"⚽",rating:96},
+{name:"Erling Haaland",pos:"FWD",emoji:"⚽",rating:96},
+{name:"Vinícius Jr.",pos:"FWD",emoji:"⚽",rating:95},
+{name:"Harry Kane",pos:"FWD",emoji:"⚽",rating:94},
+{name:"Mohamed Salah",pos:"FWD",emoji:"⚽",rating:93},
+{name:"Lamine Yamal",pos:"FWD",emoji:"⚽",rating:93},
+
+{name:"Jude Bellingham",pos:"MID",emoji:"🎯",rating:95},
+{name:"Rodri",pos:"MID",emoji:"🎯",rating:96},
+{name:"Pedri",pos:"MID",emoji:"🎯",rating:91},
+{name:"Kevin De Bruyne",pos:"MID",emoji:"🎯",rating:90},
+{name:"Federico Valverde",pos:"MID",emoji:"🎯",rating:91},
+{name:"Declan Rice",pos:"MID",emoji:"🎯",rating:90},
+
+{name:"Virgil van Dijk",pos:"CB",emoji:"🛡️",rating:90},
+{name:"William Saliba",pos:"CB",emoji:"🛡️",rating:90},
+{name:"Rúben Dias",pos:"CB",emoji:"🛡️",rating:89},
+{name:"Antonio Rüdiger",pos:"CB",emoji:"🛡️",rating:88},
+{name:"Éder Militão",pos:"CB",emoji:"🛡️",rating:88},
+{name:"Marquinhos",pos:"CB",emoji:"🛡️",rating:87},
+
+{name:"Thibaut Courtois",pos:"GK",emoji:"🧤",rating:91},
+{name:"Donnarumma",pos:"GK",emoji:"🧤",rating:91},
+{name:"Alisson",pos:"GK",emoji:"🧤",rating:90},
+{name:"Ederson",pos:"GK",emoji:"🧤",rating:89},
+{name:"Emiliano Martínez",pos:"GK",emoji:"🧤",rating:89},
+{name:"Mike Maignan",pos:"GK",emoji:"🧤",rating:88}
+
 ];
 
-let peer,conn,isHost=false,myName="",roomId="",state=null;
+
+let peer;
+let conn;
+let isHost=false;
+let myName="";
+let roomId="";
+let state=null;
+
 const $=id=>document.getElementById(id);
 
-function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
-function createRoom(){
- myName=$("hostName").value.trim()||"Jugador 1";isHost=true;
- peer=new Peer();
- peer.on("open",id=>{
-   roomId=id;
-   const link=location.href.split("#")[0]+"#room="+encodeURIComponent(id);
-   $("home").innerHTML=`<h2>🎮 Sala creada</h2><p>Comparte este enlace con la otra persona:</p>
-   <input readonly value="${link}" onclick="this.select()"><p class="muted">Esperando al segundo jugador...</p>`;
-   peer.on("connection",c=>{conn=c;setupConn();});
- });
-}
-function joinRoom(){
- myName=$("guestName").value.trim()||"Jugador 2";
- let raw=$("roomInput").value.trim();
- if(raw.includes("#room=")) raw=decodeURIComponent(raw.split("#room=")[1]);
- else if(raw.includes("?room=")) raw=raw.split("?room=")[1];
- if(!raw){alert("Introduce el enlace o código de sala.");return}
- isHost=false;roomId=raw;peer=new Peer();
- peer.on("open",()=>{conn=peer.connect(roomId);setupConn()});
- peer.on("error",e=>alert("No se pudo conectar a la sala: "+e.type));
-}
-function setupConn(){
- conn.on("open",()=>{
-   $("home").classList.add("hidden");$("game").classList.remove("hidden");
-   conn.send({type:"hello",name:myName});
-   if(isHost){
-     state={players:shuffle(players),index:0,turn:0,bid:0,highBidder:null,
-       money:[20,20],squads:[[],[]],passes:0,started:true};
-     sendState();render();
-   }
- });
- conn.on("data",msg=>handle(msg));
- conn.on("close",()=>{$("status").textContent="⚠️ El rival se ha desconectado.";});
-}
-function sendState(){if(conn?.open)conn.send({type:"state",state});}
-function handle(msg){
- if(msg.type==="hello"){
-   if(isHost){state.names=[myName,msg.name];sendState();render();}
-   else{state.names=state?.names||[msg.name,myName];}
- }
- if(msg.type==="state"){state=msg.state;render();}
- if(msg.type==="action" && isHost) processAction(msg.action,msg.player);
-}
-function sendAction(action){conn.send({type:"action",action,player:isHost?0:1});}
-function current(){return state.players[state.index]}
-function canBid(){
- if(!state||!state.started||state.index>=state.players.length)return false;
- if(state.squads[isHost?0:1].some(x=>x.pos===current().pos))return false;
- return state.turn===(isHost?0:1);
-}
-function bid(amount){
- if(!canBid())return;
- const me=isHost?0:1;
- if(state.money[me] < state.bid+amount){alert("No tienes suficiente saldo.");return}
- sendAction({type:"bid",amount});
-}
-function passBid(){if(state?.turn===(isHost?0:1))sendAction({type:"pass"});}
-function processAction(a,p){
- const me=p,opp=p?0:1;
- if(a.type==="bid"){
-   const newBid=state.bid+a.amount;
-   if(newBid>state.money[me])return;
-   state.bid=newBid;state.highBidder=me;state.turn=opp;state.passes=0;
- }else if(a.type==="pass"){
-   state.passes++;
-   if(state.highBidder!==null && state.passes>=1){
-     award(state.highBidder);
-     return;
-   }
-   state.turn=opp;
- }
- sendState();render();
-}
-function award(winner){
- const pl=current();state.money[winner]-=state.bid;
- state.squads[winner].push({...pl,price:state.bid});
- state.index++;state.bid=0;state.highBidder=null;state.passes=0;state.turn=state.index%2;
- if(state.index>=state.players.length || (state.squads[0].length>=4&&state.squads[1].length>=4)){
-   state.started=false;state.finished=true;
- }
- sendState();render();
-}
-function hostNext(){/* reservado para futuras rondas */ render()}
-function score(squad){
- // La puntuación final usa la valoración interna del jugador, no el precio pagado.
- // Solo cuenta cuando hay 4 posiciones.
- return squad.reduce((a,p)=>a+p.rating,0);
-}
-function render(){
- if(!state)return;
- const me=isHost?0:1,opp=me?0:1;
- $("myMoney").textContent=state.money[me]+" €";
- $("oppMoney").textContent=state.money[opp]+" €";
- const p=current();
- if(state.finished){
-   $("currentPlayer").innerHTML="🏁 Subasta terminada";
-   $("currentBid").textContent="";
-   $("status").textContent="Todas las plantillas están listas.";
-   $("winner").classList.remove("hidden");
-   const a=score(state.squads[0]),b=score(state.squads[1]);
-   let txt=a===b?"🤝 ¡Empate!":(a>b?state.names?.[0]||"Jugador 1":state.names?.[1]||"Jugador 2");
-   $("winner").innerHTML=`<div class="winner">🏆 ${txt}<br><span class="small">Puntuación de plantilla: ${a} - ${b}</span></div>`;
- }else{
-   $("winner").classList.add("hidden");
-   $("currentPlayer").innerHTML=`${p.emoji} <b>${p.name}</b><span class="pos">${posName(p.pos)}</span>`;
-   $("currentBid").textContent=state.bid+" €";
-   const myTurn=state.turn===me;
-   $("turnBox").innerHTML=myTurn?"<div class='status'>🟢 <b>Te toca pujar</b></div>":"<div class='status'>🟡 Turno del rival</div>";
-   $("status").textContent=state.highBidder===null?"Puja inicial: 0 €":`Puja actual: ${state.bid} €`;
- }
- renderSquad("my",state.squads[me]);renderSquad("opp",state.squads[opp]);
-}
-function renderSquad(prefix,s){
- ["GK","CB","MID","FWD"].forEach(pos=>{
-   const x=s.find(p=>p.pos===pos);
-   $(prefix+pos).innerHTML=x?`${x.name}<br><span class="small">${x.price} €</span>`:"Vacío";
- });
-}
-function posName(p){return {GK:"Portero",CB:"Central",MID:"Medio",FWD:"Delantero"}[p]}
 
-window.addEventListener("load",()=>{
- const m=location.hash.match(/room=([^&]+)/);
- if(m){$("roomInput").value=decodeURIComponent(m[1]);}
+function shuffle(array){
+return [...array].sort(()=>Math.random()-0.5);
+}
+
+
+function createRoom(){
+
+myName=
+$("hostName").value.trim()||
+"Jugador 1";
+
+isHost=true;
+
+peer=new Peer();
+
+peer.on("open",id=>{
+
+roomId=id;
+
+const link=
+location.href.split("#")[0]+
+"#room="+
+encodeURIComponent(id);
+
+$("home").innerHTML=`
+
+<h2>🎮 Sala creada</h2>
+
+<p>Comparte este enlace con el otro jugador:</p>
+
+<input readonly
+value="${link}"
+onclick="this.select()">
+
+<p class="muted">
+Esperando al segundo jugador...
+</p>
+
+`;
+
+peer.on("connection",c=>{
+
+conn=c;
+
+setupConn();
+
 });
+
+});
+
+}
+
+
+function joinRoom(){
+
+myName=
+$("guestName").value.trim()||
+"Jugador 2";
+
+let raw=
+$("roomInput").value.trim();
+
+if(raw.includes("#room="))
+raw=
+decodeURIComponent(
+raw.split("#room=")[1]
+);
+
+if(!raw){
+
+alert(
+"Introduce el enlace o código de sala."
+);
+
+return;
+}
+
+isHost=false;
+
+roomId=raw;
+
+peer=new Peer();
+
+peer.on("open",()=>{
+
+conn=peer.connect(roomId);
+
+setupConn();
+
+});
+
+peer.on("error",e=>{
+
+alert(
+"No se pudo conectar a la sala."
+);
+
+});
+
+}
+
+
+function setupConn(){
+
+conn.on("open",()=>{
+
+$("home").classList.add("hidden");
+
+$("game").classList.remove("hidden");
+
+conn.send({
+type:"hello",
+name:myName
+});
+
+if(isHost){
+
+state={
+
+players:shuffle(players),
+
+index:0,
+
+turn:0,
+
+bid:0,
+
+highBidder:null,
+
+money:[20,20],
+
+squads:[[],[]],
+
+passes:0,
+
+started:true,
+
+names:[myName,"Jugador 2"]
+
+};
+
+sendState();
+
+render();
+
+}
+
+});
+
+
+conn.on("data",msg=>{
+
+handle(msg);
+
+});
+
+
+conn.on("close",()=>{
+
+$("status").textContent=
+"⚠️ El rival se ha desconectado.";
+
+});
+
+}
+
+
+function sendState(){
+
+if(conn && conn.open){
+
+conn.send({
+type:"state",
+state:state
+});
+
+}
+
+}
+
+
+function handle(msg){
+
+if(msg.type==="hello"){
+
+if(isHost){
+
+state.names=[
+myName,
+msg.name
+];
+
+sendState();
+
+render();
+
+}
+
+}
+
+
+if(msg.type==="state"){
+
+state=msg.state;
+
+render();
+
+}
+
+
+if(
+msg.type==="action" &&
+isHost
+){
+
+processAction(
+msg.action,
+msg.player
+);
+
+}
+
+}
+
+
+function sendAction(action){
+
+conn.send({
+
+type:"action",
+
+action:action,
+
+player:isHost?0:1
+
+});
+
+}
+
+
+function current(){
+
+return state.players[state.index];
+
+}
+
+
+function canBid(){
+
+if(
+!state ||
+!state.started ||
+state.index>=state.players.length
+)
+return false;
+
+const me=isHost?0:1;
+
+if(
+state.squads[me]
+.some(x=>x.pos===current().pos)
+)
+return false;
+
+return state.turn===me;
+
+}
+
+
+function bid(amount){
+
+if(!canBid())
+return;
+
+const me=isHost?0:1;
+
+if(
+state.money[me]<
+state.bid+amount
+){
+
+alert(
+"No tienes suficiente saldo."
+);
+
+return;
+
+}
+
+sendAction({
+
+type:"bid",
+
+amount:amount
+
+});
+
+}
+
+
+function passBid(){
+
+const me=isHost?0:1;
+
+if(
+state &&
+state.turn===me
+){
+
+sendAction({
+type:"pass"
+});
+
+}
+
+}
+
+
+function processAction(a,p){
+
+const me=p;
+
+const opp=
+p?0:1;
+
+
+if(a.type==="bid"){
+
+const newBid=
+state.bid+a.amount;
+
+if(
+newBid>
+state.money[me]
+)
+return;
+
+state.bid=newBid;
+
+state.highBidder=me;
+
+state.turn=opp;
+
+state.passes=0;
+
+}
+
+
+else if(a.type==="pass"){
+
+state.passes++;
+
+if(
+state.highBidder!==null &&
+state.passes>=1
+){
+
+award(
+state.highBidder
+);
+
+return;
+
+}
+
+state.turn=opp;
+
+}
+
+
+sendState();
+
+render();
+
+}
+
+
+function award(winner){
+
+const pl=current();
+
+state.money[winner]-=
+state.bid;
+
+state.squads[winner].push({
+
+...pl,
+
+price:state.bid
+
+});
+
+state.index++;
+
+state.bid=0;
+
+state.highBidder=null;
+
+state.passes=0;
+
+state.turn=
+state.index%2;
+
+
+if(
+state.index>=state.players.length ||
+(
+state.squads[0].length>=4 &&
+state.squads[1].length>=4
+)
+){
+
+state.started=false;
+
+state.finished=true;
+
+}
+
+
+sendState();
+
+render();
+
+}
+
+
+function score(squad){
+
+return squad.reduce(
+(total,player)=>
+total+player.rating,
+0
+);
+
+}
+
+
+function render(){
+
+if(!state)
+return;
+
+const me=
+isHost?0:1;
+
+const opp=
+me?0:1;
+
+
+$("myMoney").textContent=
+state.money[me]+" €";
+
+$("oppMoney").textContent=
+state.money[opp]+" €";
+
+
+if(state.finished){
+
+$("currentPlayer").innerHTML=
+"🏁 Subasta terminada";
+
+$("currentBid").textContent="";
+
+$("status").textContent=
+"Las plantillas están completas.";
+
+$("winner").classList.remove("hidden");
+
+
+const a=
+score(state.squads[0]);
+
+const b=
+score(state.squads[1]);
+
+
+let winner;
+
+if(a===b){
+
+winner="🤝 ¡Empate!";
+
+}else{
+
+winner=
+a>b
+?state.names[0]
+:state.names[1];
+
+}
+
+
+$("winner").innerHTML=`
+
+<div class="winner">
+
+🏆 ${winner}
+
+<br>
+
+<span class="small">
+
+Puntuación:
+${a} - ${b}
+
+</span>
+
+</div>
+
+`;
+
+}else{
+
+$("winner").classList.add("hidden");
+
+const p=current();
+
+$("currentPlayer").innerHTML=`
+
+${p.emoji}
+
+<b>${p.name}</b>
+
+<span class="pos">
+
+${posName(p.pos)}
+
+</span>
+
+`;
+
+$("currentBid").textContent=
+state.bid+" €";
+
+
+const myTurn=
+state.turn===me;
+
+
+$("turnBox").innerHTML=
+
+myTurn
+
+?
+
+"<div class='status'>🟢 <b>Te toca pujar</b></div>"
+
+:
+
+"<div class='status'>🟡 Turno del rival</div>";
+
+
+$("status").textContent=
+
+state.highBidder===null
+
+?
+
+"Puja inicial: 0 €"
+
+:
+
+"Puja actual: "+
+state.bid+
+" €";
+
+}
+
+
+renderSquad(
+"my",
+state.squads[me]
+);
+
+renderSquad(
+"opp",
+state.squads[opp]
+);
+
+}
+
+
+function renderSquad(prefix,squad){
+
+["GK","CB","MID","FWD"].forEach(pos=>{
+
+const player=
+squad.find(
+p=>p.pos===pos
+);
+
+$(prefix+pos).innerHTML=
+
+player
+
+?
+
+`${player.name}
+<br>
+<span class="small">
+${player.price} €
+</span>`
+
+:
+
+"Vacío";
+
+});
+
+}
+
+
+function posName(pos){
+
+return{
+
+GK:"Portero",
+
+CB:"Central",
+
+MID:"Medio",
+
+FWD:"Delantero"
+
+}[pos];
+
+}
+
+
+window.addEventListener(
+"load",
+()=>{
+
+const match=
+location.hash.match(
+/room=([^&]+)/
+);
+
+if(match){
+
+$("roomInput").value=
+decodeURIComponent(
+match[1]
+);
+
+}
+
+}
+);
+
 </script>
+
 </body>
 </html>
